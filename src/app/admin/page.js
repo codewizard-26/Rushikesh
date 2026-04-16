@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users, UserPlus, Activity, Database } from 'lucide-react';
+import { Users, UserPlus, Activity, Database, ShieldCheck, Mail, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function AdminDashboard() {
@@ -17,12 +17,10 @@ export default function AdminDashboard() {
         if (authRes.ok) {
           const authData = await authRes.json();
           if (authData.user.role !== 'admin') {
-            router.push('/dashboard');
-            return;
+            router.push('/dashboard'); return;
           }
         } else {
-          router.push('/login');
-          return;
+          router.push('/login'); return;
         }
 
         const res = await fetch('/api/users');
@@ -39,65 +37,95 @@ export default function AdminDashboard() {
     fetchUsers();
   }, [router]);
 
-  if (loading) return <div className="container" style={{ padding: '4rem 1rem', textAlign: 'center' }}>Loading Admin Panel...</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-slate-500 font-bold">Accessing Secure Admin Core...</div>;
+
+  const stats = [
+    { label: 'Total Members', value: users.length, icon: Users, color: 'blue' },
+    { label: 'Platform Activity', value: 'High', icon: Activity, color: 'emerald' },
+    { label: 'Daily Signups', value: '12', icon: UserPlus, color: 'purple' },
+    { label: 'Server Status', value: 'Optimal', icon: Database, color: 'rose' },
+  ];
 
   return (
-    <div className="container animate-fade-in" style={{ padding: '2rem 1rem', marginTop: '2rem' }}>
-      <header style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold' }}>Admin Dashboard</h1>
-        <p style={{ color: '#94a3b8' }}>Platform overview and user management.</p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-fade-in">
+      <header className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+        <div>
+          <div className="flex items-center gap-2 text-rose-500 font-black text-xs uppercase tracking-[0.2em] mb-2">
+             <ShieldCheck size={16} /> Restricted Authority
+          </div>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Admin Terminal</h1>
+          <p className="text-slate-500 font-medium">Monitoring platform-wide engagement and user compliance.</p>
+        </div>
+        <div className="px-6 py-2 bg-slate-900 text-white rounded-xl text-sm font-bold flex items-center gap-2">
+           <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" /> Live System Monitor
+        </div>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
-        {[
-          { label: 'Total Users', value: users.length, icon: Users, color: '#3b82f6' },
-          { label: 'Active Today', value: Math.floor(users.length * 0.8), icon: Activity, color: '#10b981' },
-          { label: 'New Signups', value: '3', icon: UserPlus, color: '#8b5cf6' },
-          { label: 'System Status', value: 'Healthy', icon: Database, color: '#ef4444' },
-        ].map((stat, idx) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        {stats.map((stat, idx) => (
           <motion.div 
             key={idx}
-            className="card glass"
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.1 }}
-            style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}
+            className="glass p-6 rounded-3xl border border-slate-100 flex items-center gap-5"
           >
-            <div style={{ padding: '1rem', borderRadius: '12px', background: `rgba(${stat.color === '#10b981' ? '16, 185, 129' : stat.color === '#3b82f6' ? '59, 130, 246' : stat.color === '#8b5cf6' ? '139, 92, 246' : '239, 68, 68'}, 0.1)` }}>
-              <stat.icon color={stat.color} size={24} />
+            <div className={`p-4 rounded-2xl bg-${stat.color}-50 text-${stat.color}-500`}>
+              <stat.icon size={28} />
             </div>
             <div>
-              <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>{stat.label}</p>
-              <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{stat.value}</p>
+              <p className="text-xs font-black uppercase text-slate-400 tracking-wider mb-1">{stat.label}</p>
+              <p className="text-2xl font-black text-slate-900">{stat.value}</p>
             </div>
           </motion.div>
         ))}
       </div>
 
-      <div className="card glass">
-        <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>User Registry</h2>
-        <div className="admin-table-container">
-          <table className="admin-table">
+      <div className="glass rounded-[2.5rem] p-8 border border-slate-100 shadow-xl shadow-slate-200/50">
+        <div className="flex justify-between items-center mb-8">
+           <h2 className="text-2xl font-black text-slate-900">User Registry</h2>
+           <button className="text-sm font-bold text-blue-600 px-4 py-2 hover:bg-blue-50 rounded-xl transition-colors">Export CSV</button>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
             <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Joined Date</th>
+              <tr className="text-slate-400 font-black text-xs uppercase tracking-widest border-b border-slate-100 italic">
+                <th className="pb-5 pl-4">Member Info</th>
+                <th className="pb-5">Permission Level</th>
+                <th className="pb-5">Registration</th>
+                <th className="pb-5 text-right pr-4">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-50">
               {users.map(user => (
-                <tr key={user._id}>
-                  <td style={{ fontWeight: '500' }}>{user.name}</td>
-                  <td style={{ color: '#94a3b8' }}>{user.email}</td>
-                  <td>
-                    <span className={`badge ${user.role === 'admin' ? 'badge-admin' : 'badge-user'}`}>
+                <tr key={user._id} className="group hover:bg-slate-50/50 transition-colors">
+                  <td className="py-6 pl-4">
+                    <div className="flex items-center gap-4">
+                       <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500 text-sm">
+                          {user.name.charAt(0)}
+                       </div>
+                       <div>
+                          <p className="font-bold text-slate-900">{user.name}</p>
+                          <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                             <Mail size={12} /> {user.email}
+                          </div>
+                       </div>
+                    </div>
+                  </td>
+                  <td className="py-6">
+                    <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${user.role === 'admin' ? 'bg-rose-50 text-rose-500' : 'bg-emerald-50 text-emerald-500'}`}>
                       {user.role}
                     </span>
                   </td>
-                  <td style={{ color: '#94a3b8' }}>
-                    {new Date(user.createdAt).toLocaleDateString()}
+                  <td className="py-6">
+                    <div className="flex items-center gap-2 text-sm text-slate-500 font-bold">
+                       <Calendar size={14} className="text-slate-300" />
+                       {new Date(user.createdAt).toLocaleDateString()}
+                    </div>
+                  </td>
+                  <td className="py-6 text-right pr-4">
+                    <button className="text-xs font-black text-slate-400 hover:text-rose-500 transition-colors uppercase tracking-widest">Restrict</button>
                   </td>
                 </tr>
               ))}

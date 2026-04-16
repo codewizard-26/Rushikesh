@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { PlayCircle, Award, Clock } from 'lucide-react';
+import { PlayCircle, Award, Clock, Users, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function TrainingModules() {
@@ -13,9 +13,7 @@ export default function TrainingModules() {
     const fetchUser = async () => {
       try {
         const res = await fetch('/api/auth/me');
-        if (!res.ok) {
-          router.push('/login');
-        }
+        if (!res.ok) router.push('/login');
       } catch {
         router.push('/login');
       } finally {
@@ -25,53 +23,88 @@ export default function TrainingModules() {
     fetchUser();
   }, [router]);
 
-  if (loading) return <div className="container" style={{ padding: '4rem 1rem', textAlign: 'center' }}>Loading Modules...</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-slate-500 font-bold">Loading Premium Content...</div>;
 
   const modules = [
-    { title: 'Full Body HIIT', duration: '25 min', trainer: 'Sarah J.', level: 'Advanced', color: '#ef4444' },
-    { title: 'Core Strength Basics', duration: '15 min', trainer: 'Mike T.', level: 'Beginner', color: '#3b82f6' },
-    { title: 'Yoga for Flexibility', duration: '40 min', trainer: 'Elena R.', level: 'All Levels', color: '#10b981' },
-    { title: 'Dumbbell Upper Body', duration: '30 min', trainer: 'David W.', level: 'Intermediate', color: '#8b5cf6' },
-    { title: 'Cardio Kickboxing', duration: '35 min', trainer: 'Sarah J.', level: 'Advanced', color: '#f59e0b' },
-    { title: 'Warm-up Routine', duration: '10 min', trainer: 'Mike T.', level: 'Beginner', color: '#64748b' },
+    { title: 'Full Body HIIT', duration: '25 min', trainer: 'Sarah J.', level: 'Advanced', color: 'red', desc: 'Intense metabolic conditioning for fat loss.' },
+    { title: 'Core Strength Basics', duration: '15 min', trainer: 'Mike T.', level: 'Beginner', color: 'blue', desc: 'Foundational stability for improved posture.' },
+    { title: 'Yoga for Flexibility', duration: '40 min', trainer: 'Elena R.', level: 'All Levels', color: 'emerald', desc: 'Dynamic stretching and mindfulness session.' },
+    { title: 'Dumbbell Upper Body', duration: '30 min', trainer: 'David W.', level: 'Intermediate', color: 'purple', desc: 'Hypertrophy-focused strength training.' },
+    { title: 'Cardio Kickboxing', duration: '35 min', trainer: 'Sarah J.', level: 'Advanced', color: 'orange', desc: 'High-energy explosive combat training.' },
+    { title: 'Warm-up Routine', duration: '10 min', trainer: 'Mike T.', level: 'Beginner', color: 'slate', desc: 'Essential joint mobility before any workout.' },
   ];
 
+  const getColorClass = (color) => {
+    const maps = {
+      'red': 'text-red-500 bg-red-50 hover:bg-red-500',
+      'blue': 'text-blue-500 bg-blue-50 hover:bg-blue-500',
+      'emerald': 'text-emerald-500 bg-emerald-50 hover:bg-emerald-500',
+      'purple': 'text-purple-500 bg-purple-50 hover:bg-purple-500',
+      'orange': 'text-orange-500 bg-orange-50 hover:bg-orange-500',
+      'slate': 'text-slate-500 bg-slate-50 hover:bg-slate-500'
+    };
+    return maps[color];
+  };
+
   return (
-    <div className="container animate-fade-in" style={{ padding: '2rem 1rem', marginTop: '1rem' }}>
-      <header style={{ marginBottom: '3rem' }}>
-        <h1 style={{ fontSize: '2.5rem', fontWeight: '800', color: '#0f172a' }}>Training Modules</h1>
-        <p style={{ color: '#475569', fontSize: '1.125rem' }}>Follow along with professional video-based fitness coaching.</p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
+      <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="max-w-2xl">
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-4 tracking-tight">Training Modules</h1>
+          <p className="text-slate-600 text-lg leading-relaxed">
+            Follow along with professional video-based fitness coaching. Gain direct feedback and strike goals with your personalized dashboard.
+          </p>
+        </div>
+        <div className="flex gap-4 items-center px-6 py-3 bg-blue-50 text-blue-700 rounded-2xl font-bold text-sm">
+           <Award size={20} /> Professional Certification Required
+        </div>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {modules.map((mod, idx) => (
           <motion.div 
             key={idx}
-            className="card glass"
-            style={{ padding: 0, overflow: 'hidden', cursor: 'pointer', display: 'flex', flexDirection: 'column' }}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: idx * 0.1 }}
-            whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
+            whileHover={{ y: -10 }}
+            className="group glass rounded-[2rem] overflow-hidden p-3 border border-slate-100 hover:border-blue-100 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300"
           >
-            <div style={{ height: '180px', background: `linear-gradient(135deg, ${mod.color}20 0%, ${mod.color}40 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-              <PlayCircle size={64} color={mod.color} style={{ opacity: 0.8 }} />
-              <div style={{ position: 'absolute', bottom: '10px', right: '10px', background: 'rgba(0,0,0,0.7)', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }}>
-                {mod.duration}
+            <div className={`h-56 rounded-3xl mb-4 relative flex items-center justify-center overflow-hidden transition-all duration-500 bg-${mod.color}-100/50`}>
+              {/* Dynamic Abstract Background based on color */}
+              <div className={`absolute inset-0 bg-gradient-to-br transition-opacity group-hover:opacity-80 from-transparent to-white/30`} />
+              
+              <motion.div whileHover={{ scale: 1.1 }} className="z-10 cursor-pointer">
+                <PlayCircle size={72} strokeWidth={1.5} className="group-hover:text-blue-500 transition-colors" />
+              </motion.div>
+              
+              <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-sm">
+                <Clock size={14} className="text-slate-500" />
+                <span className="text-xs font-black text-slate-900">{mod.duration}</span>
               </div>
             </div>
-            <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#0f172a' }}>{mod.title}</h3>
-                <span className="badge" style={{ background: `${mod.color}20`, color: mod.color }}>{mod.level}</span>
+
+            <div className="px-5 pb-5 pt-2">
+              <div className="flex justify-between items-start mb-3">
+                <div>
+                    <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{mod.title}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                       <Users size={14} className="text-slate-400" />
+                       <span className="text-sm font-semibold text-slate-500">Instructor: {mod.trainer}</span>
+                    </div>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-600`}>
+                  {mod.level}
+                </span>
               </div>
-              <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>Instructor: {mod.trainer}</p>
               
-              <div style={{ marginTop: 'auto', display: 'flex', gap: '1rem' }}>
-                <button className="btn btn-primary" style={{ width: '100%', display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                  <PlayCircle size={18} /> Start Workout
-                </button>
-              </div>
+              <p className="text-sm text-slate-500 line-clamp-2 mb-6 font-medium leading-relaxed">
+                {mod.desc}
+              </p>
+              
+              <button className="w-full group/btn flex items-center justify-center gap-2 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-blue-600 transition-all active:scale-95">
+                 Start Training <ChevronRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+              </button>
             </div>
           </motion.div>
         ))}
