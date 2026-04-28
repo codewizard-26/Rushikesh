@@ -5,38 +5,8 @@ import User from '@/app/models/User';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET;
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-async function fetchGeminiActivityEstimation(prompt) {
-  try {
-    const formattedPrompt = `${prompt}. Estimate the total calories burned using the provided user body metrics exactly. Provide the result strictly as a valid JSON object with the key "calories" (number). No markdown or other text. Example: {"calories": 300}`;
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: formattedPrompt }] }],
-        generationConfig: {
-          response_mime_type: "application/json",
-        }
-      })
-    });
 
-    if (!response.ok) {
-      console.error('Gemini API Error:', await response.text());
-      return 150; // Fallback
-    }
-
-    const data = await response.json();
-    const textRes = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (textRes) {
-      const parsed = JSON.parse(textRes);
-      return parsed.calories || 150;
-    }
-  } catch (error) {
-    console.error('Gemini parsing error', error);
-  }
-  return 150; // Fallback
-}
 
 export async function GET(req) {
   try {
@@ -72,6 +42,12 @@ export async function POST(req) {
     const userHeight = user?.height || 170;
     const userAge = user?.age || 25;
     const userGender = user?.gender || 'male';
+    
+    if (userGender.toLowerCase()==="male"){
+      bmr = 10*userWeight + 6.25*userHeight - 5*userAge + 5;
+    }else{
+      bmr = 10*userWeight + 6.25*userHeight - 5*userAge - 161;
+    }
 
     let calculatedCalories = 0;
 
@@ -79,19 +55,15 @@ export async function POST(req) {
     const bodyContext = `The user is a ${userAge} year old ${userGender}, weighing ${userWeight}kg with a height of ${userHeight}cm.`;
 
     if (['Running', 'Cycling', 'Yoga', 'Swimming'].includes(type)) {
-      const metValues = { 'Running': 9.8, 'Cycling': 8.0, 'Yoga': 2.5, 'Swimming': 7.0 };
-      const met = metValues[type];
-      // Basic math wrapper
-      calculatedCalories = Math.round(met * userWeight * (durationMinutes / 60) * (1 + (Math.random() * 0.1 - 0.05)));
+      const metValues = { 'Running': 8, 'Cycling': 6, 'Walking':3.5, 'Yoga': 2.5, 'Swimming': 8, gym:5, weightlifting: 5 };
+      const met = metValues[type.toLowerCase()] || 5;
+
+      cont activityCalories = met * userWeight * (durationMinutes / 60);
+
+      const calculatedCalories = Math.round(activityCalories*bmr/1500);
+      
     } 
-    else if (type === 'Weightlifting') {
-      const prompt = `${bodyContext} They performed weightlifting for ${durationMinutes} minutes. Specifically, they did the exercise: "${exerciseName}", lifting ${weightLifted}kg for ${sets} sets of ${reps} reps.`;
-      calculatedCalories = await fetchGeminiActivityEstimation(prompt);
-    } 
-    else if (type === 'Other') {
-      const prompt = `${bodyContext} They performed an activity for ${durationMinutes} minutes described exactly as: "${description}".`;
-      calculatedCalories = await fetchGeminiActivityEstimation(prompt);
-    }
+    
 
     const activity = await ActivityLog.create({
       user: decoded.id,

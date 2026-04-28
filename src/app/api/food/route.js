@@ -10,37 +10,32 @@ async function fetchGeminiFoodEstimation(mealDescription) {
   try {
     const prompt = `Analyze this meal description: "${mealDescription}". Estimate the total calories and total macros in grams. Provide the result strictly as a valid JSON object with the keys "calories" (number), "protein" (number), "carbs" (number), and "fats" (number). No markdown. Example: {"calories": 300, "protein": 25, "carbs": 30, "fats": 10}`;
     
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
+    const response = await fetch(`http://127.0.0.1:8000/predict`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          response_mime_type: "application/json",
-        }
+        meal: mealDescription,
       })
     });
 
     if (!response.ok) {
-      console.error('Gemini API Error:', await response.text());
-      return { calories: 250, protein: 10, carbs: 30, fats: 8 }; // Fallback
+      console.error('FastAPI Error', await response.text());
+      return { calories: 240, protein: 10, carbs: 30, fats: 8 }; // Fallback
     }
 
     const data = await response.json();
-    const textRes = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (textRes) {
-      const parsed = JSON.parse(textRes);
+
       return { 
-        calories: parsed.calories || 250, 
-        protein: parsed.protein || 10,
-        carbs: parsed.carbs || 30,
-        fats: parsed.fats || 8
+        calories: data.calories || 240, 
+        protein: data.protein || 10,
+        carbs: data.carbs || 30,
+        fats: data.fats || 8
       };
     }
-  } catch (error) {
-    console.error('Gemini parsing error', error);
+  catch (error) {
+    console.error('FastAPI Error', error);
   }
-  return { calories: 250, protein: 10, carbs: 30, fats: 8 }; // Fallback
+  return { calories: 240, protein: 10, carbs: 30, fats: 8 }; // Fallback
 }
 
 export async function GET(req) {
@@ -83,7 +78,7 @@ export async function POST(req) {
       fats: aiResult.fats
     });
 
-    return NextResponse.json({ message: 'Food logged safely with Gemini AI estimation', food }, { status: 201 });
+    return NextResponse.json({ message: 'Food logged safely with AI estimation', food }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ message: 'Error logging food', error: error.message }, { status: 500 });
   }
